@@ -128,6 +128,8 @@ int main(int argc, char *argv[])
    pfo.rownum = 1;
    pfo.tot_rows = 0;
    pfo.N = 0;
+   printf("lower rows_per_file=%d\n",pflower.rows_per_file);
+   printf("upper rows_per_file=%d\n",pfupper.rows_per_file);
    if (pfupper.rows_per_file != pflower.rows_per_file) {        //Sanity check for the two input frequency bands
       fprintf(stderr, "rows_per_file in input files do not match!\n");
       exit(1);
@@ -316,10 +318,17 @@ int main(int argc, char *argv[])
          } else {
          }
       }
-   } while (pfo.rownum <= pfo.rows_per_file);
+   } while (pfo.rownum <= pfo.rows_per_file && pfupper.status==0 && pflower.status==0);
    printf("Closing file '%s'\n", pflower.filename);
    fits_close_file(pfupper.fptr, &status);
    printf("Closing file '%s'\n", pfupper.filename);
    fits_close_file(pflower.fptr, &status);
+   if(pflower.status!=0||pfupper.status!=0)
+   {
+     fprintf(stderr,"An error occurred when combining the two Mock files!\n");
+     if(pflower.status==108||pfupper.status==108)
+       fprintf(stderr,"One or both of the files is incomplete.\n");
+     exit(1);
+   }
    exit(0);
 }
