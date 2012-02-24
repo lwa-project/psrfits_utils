@@ -14,7 +14,6 @@ dist_data_DATA = \
 
 lib_LTLIBRARIES = libpsrfits_utils.la
 libpsrfits_utils_la_SOURCES = \
-         weighting.c \
          downsample.c \
          fold.c \
          misc_utils.c \
@@ -25,7 +24,7 @@ libpsrfits_utils_la_SOURCES = \
 LDADD = libpsrfits_utils.la
 AM_CPPFLAGS = -DPSRFITS_TEMPLATE_DIR='"$(datadir)"'
 
-bin_PROGRAMS = fold_psrfits psrfits_singlepulse psrfits_subband combine_mocks
+bin_PROGRAMS = fold_psrfits psrfits_singlepulse psrfits_subband combine_mocks psrfits_bandpass
 
 fold_psrfits_CFLAGS = @PTHREAD_CFLAGS@ $(AM_CFLAGS)
 fold_psrfits_LDFLAGS = @PTHREAD_CFLAGS@ $(AM_LDFLAGS)
@@ -36,3 +35,20 @@ psrfits_subband_SOURCES = psrfits_subband.c \
 
 combine_mocks_SOURCES = combine_mocks.c \
 				   combine_mocks_cmd.h combine_mocks_cmd.c
+
+psrfits_bandpass_SOURCES = psrfits_bandpass.c \
+			  psrfits_bandpass_cmd.h psrfits_bandpass_cmd.c
+
+BUILT_SOURCES = swig_addedfunc.c
+SWIG_FILES = psrfits_utils.i
+
+pkgpython_PYTHON = psrfits_utils.py
+pkgpyexec_LTLIBRARIES = _psrfits_utils.la
+
+_psrfits_utils_la_SOURCES = swig_addedfunc.c psrfits_utils_wrap.c write_psrfits.c read_psrfits.c
+_psrfits_utils_la_CPPFLAGS = $(AX_SWIG_PYTHON_CPPFLAGS)
+_psrfits_utils_la_LDFLAGS = -module
+
+
+swig_addedfunc.c : $(SWIG_FILES)
+	$(SWIG) $(SWIG_PYTHON_OPT) $(SWIG_PYTHON_CFLAGS) -o $@ $<
