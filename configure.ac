@@ -15,9 +15,6 @@ AX_SWIG_PYTHON
 AX_PTHREAD
 
 AC_CHECK_LIB([m],[sin])
-FLAGS="$CFLAGS -I/opt/local/include"
-CXXFLAGS="$CXXFLAGS -I/opt/local/include"
-LDFLAGS="$LDFLAGS -L/opt/local/lib"
 AC_CHECK_LIB([cfitsio],[ffgky],[],
 	     [AC_MSG_ERROR([cfitsio is required])])
 

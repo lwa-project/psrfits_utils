@@ -36,16 +36,16 @@ psrfits_subband_SOURCES = psrfits_subband.c \
 combine_mocks_SOURCES = combine_mocks.c \
 				   combine_mocks_cmd.h combine_mocks_cmd.c
 
-BUILT_SOURCES = swig_addedfunc.c
+BUILT_SOURCES = psrfits_utils_wrap.c
 SWIG_FILES = psrfits_utils.i
 
 pkgpython_PYTHON = psrfits_utils.py __init__.py
 pkgpython_LTLIBRARIES = _psrfits_utils.la
 
 _psrfits_utils_la_SOURCES = swig_addedfunc.c psrfits_utils_wrap.c write_psrfits.c read_psrfits.c downsample.c
-_psrfits_utils_la_CPPFLAGS = $(AX_SWIG_PYTHON_CPPFLAGS)
+_psrfits_utils_la_CPPFLAGS = $(AX_SWIG_PYTHON_CPPFLAGS) $(AM_CPPFLAGS)
 _psrfits_utils_la_LDFLAGS = -module
 
 
-swig_addedfunc.c : $(SWIG_FILES)
-	$(SWIG) $(SWIG_PYTHON_OPT) $(SWIG_PYTHON_CFLAGS) -o $@ $<
+psrfits_utils_wrap.c : $(SWIG_FILES)
+	$(SWIG) $(SWIG_PYTHON_OPT) -python $(SWIG_PYTHON_CFLAGS) $(DEFAULT_INCLUDES) -o $@ $<

@@ -11,3 +11,5 @@
 
 %include "psrfits.h"
 %include "swig_addedfunc.h"
+
+%apply double * { long double * }
