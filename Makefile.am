@@ -39,10 +39,10 @@ combine_mocks_SOURCES = combine_mocks.c \
 BUILT_SOURCES = swig_addedfunc.c
 SWIG_FILES = psrfits_utils.i
 
-pkgpython_PYTHON = psrfits_utils.py
-pkgpyexec_LTLIBRARIES = _psrfits_utils.la
+pkgpython_PYTHON = psrfits_utils.py __init__.py
+pkgpython_LTLIBRARIES = _psrfits_utils.la
 
-_psrfits_utils_la_SOURCES = swig_addedfunc.c psrfits_utils_wrap.c write_psrfits.c read_psrfits.c
+_psrfits_utils_la_SOURCES = swig_addedfunc.c psrfits_utils_wrap.c write_psrfits.c read_psrfits.c downsample.c
 _psrfits_utils_la_CPPFLAGS = $(AX_SWIG_PYTHON_CPPFLAGS)
 _psrfits_utils_la_LDFLAGS = -module
 
