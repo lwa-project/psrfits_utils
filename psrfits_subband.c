@@ -229,6 +229,7 @@ void init_subbanding(int nsub, double dm,
     pfi->sub.dat_scales  = (float *)malloc(sizeof(float)
                                           * pfi->hdr.nchan * pfi->hdr.npol);
     pfi->sub.rawdata = (unsigned char *)malloc(pfi->sub.bytes_per_subint);
+    pfi->sub.fdata = (unsigned char *)malloc(pfi->sub.bytes_per_subint*sizeof(float));
     // This is temporary...
     if (pfi->hdr.nbits!=8) {
         pfi->sub.data = (unsigned char *)malloc(pfi->sub.bytes_per_subint *
