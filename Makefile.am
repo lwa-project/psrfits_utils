@@ -24,7 +24,7 @@ libpsrfits_utils_la_SOURCES = \
 LDADD = libpsrfits_utils.la
 AM_CPPFLAGS = -DPSRFITS_TEMPLATE_DIR='"$(datadir)"'
 
-bin_PROGRAMS = fold_psrfits psrfits_singlepulse psrfits_subband combine_mocks
+bin_PROGRAMS = fold_psrfits psrfits_singlepulse psrfits_subband combine_mocks combine_lwa psrfits_drifttool
 
 fold_psrfits_CFLAGS = @PTHREAD_CFLAGS@ $(AM_CFLAGS)
 fold_psrfits_LDFLAGS = @PTHREAD_CFLAGS@ $(AM_LDFLAGS)
@@ -35,6 +35,12 @@ psrfits_subband_SOURCES = psrfits_subband.c \
 
 combine_mocks_SOURCES = combine_mocks.c \
 				   combine_mocks_cmd.h combine_mocks_cmd.c
+
+combine_lwa_SOURCES = combine_lwa.c \
+				   combine_lwa_cmd.h combine_lwa_cmd.c
+
+psrfits_drifttool_SOURCES = psrfits_drifttool.c \
+				   psrfits_drifttool_cmd.h psrfits_drifttool_cmd.c
 
 BUILT_SOURCES = psrfits_utils_wrap.c
 SWIG_FILES = psrfits_utils.i
