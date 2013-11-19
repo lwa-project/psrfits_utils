@@ -6,6 +6,8 @@
 %include "cmalloc.i"
 %malloc(float,floatp)
 %free(float,floatp)
+%malloc(double,doublep)
+%free(double,doublep)
 %malloc(unsigned char,ucharp)
 %free(unsigned char,ucharp)
 

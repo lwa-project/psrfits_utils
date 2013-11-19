@@ -243,7 +243,7 @@ int psrfits_read_subint(struct psrfits *pf) {
     fits_read_col(pf->fptr, TDOUBLE, colnum, row, 1, 1, NULL, &(sub->tel_zen),
             NULL, status);
     fits_get_colnum(pf->fptr, 0, "DAT_FREQ", &colnum, status);
-    fits_read_col(pf->fptr, TFLOAT, colnum, row, 1, nchan, NULL, sub->dat_freqs,
+    fits_read_col(pf->fptr, TDOUBLE, colnum, row, 1, nchan, NULL, sub->dat_freqs,
             NULL, status);
     fits_get_colnum(pf->fptr, 0, "DAT_WTS", &colnum, status);
     fits_read_col(pf->fptr, TFLOAT, colnum, row, 1, nchan, NULL, sub->dat_weights,

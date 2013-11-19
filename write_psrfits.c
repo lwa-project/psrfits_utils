@@ -348,7 +348,7 @@ int psrfits_write_subint(struct psrfits *pf) {
     fits_write_col(pf->fptr, TFLOAT, 11, row, 1, 1, &ftmp, status);
     ftmp = (float) sub->tel_zen;
     fits_write_col(pf->fptr, TFLOAT, 12, row, 1, 1, &ftmp, status);
-    fits_write_col(pf->fptr, TFLOAT, 13, row, 1, nchan, sub->dat_freqs, status);
+    fits_write_col(pf->fptr, TDOUBLE, 13, row, 1, nchan, sub->dat_freqs, status);
     fits_write_col(pf->fptr, TFLOAT, 14, row, 1, nchan, sub->dat_weights, status);
     fits_write_col(pf->fptr, TFLOAT, 15, row, 1, nivals, sub->dat_offsets, status);
     fits_write_col(pf->fptr, TFLOAT, 16, row, 1, nivals, sub->dat_scales, status);

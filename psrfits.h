@@ -81,7 +81,7 @@ struct subint {
     double tel_zen;         // Telescope zenith angle at subint centre (deg)
     int bytes_per_subint;   // Number of bytes for one row of raw data
     int FITS_typecode;      // FITS data typecode as per CFITSIO
-    float *dat_freqs;       // Ptr to array of Centre freqs for each channel (MHz)
+    double *dat_freqs;       // Ptr to array of Centre freqs for each channel (MHz)
     float *dat_weights;     // Ptr to array of Weights for each channel
     float *dat_offsets;     // Ptr to array of offsets for each chan * pol
     float *dat_scales;      // Ptr to array of scalings for each chan * pol
