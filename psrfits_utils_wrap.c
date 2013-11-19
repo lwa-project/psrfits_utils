@@ -2922,13 +2922,12 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_float swig_types[4]
 #define SWIGTYPE_p_foldinfo swig_types[5]
 #define SWIGTYPE_p_hdrinfo swig_types[6]
-#define SWIGTYPE_p_long_double swig_types[7]
-#define SWIGTYPE_p_polyco swig_types[8]
-#define SWIGTYPE_p_psrfits swig_types[9]
-#define SWIGTYPE_p_subint swig_types[10]
-#define SWIGTYPE_p_unsigned_char swig_types[11]
-static swig_type_info *swig_types[13];
-static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
+#define SWIGTYPE_p_polyco swig_types[7]
+#define SWIGTYPE_p_psrfits swig_types[8]
+#define SWIGTYPE_p_subint swig_types[9]
+#define SWIGTYPE_p_unsigned_char swig_types[10]
+static swig_type_info *swig_types[12];
+static swig_module_info swig_module = {swig_types, 11, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -4441,8 +4440,8 @@ SWIGINTERN PyObject *_wrap_hdrinfo_MJD_epoch_set(PyObject *SWIGUNUSEDPARM(self),
   long double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
-  int res2 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
@@ -4452,17 +4451,11 @@ SWIGINTERN PyObject *_wrap_hdrinfo_MJD_epoch_set(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "hdrinfo_MJD_epoch_set" "', argument " "1"" of type '" "struct hdrinfo *""'"); 
   }
   arg1 = (struct hdrinfo *)(argp1);
-  {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_long_double,  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "hdrinfo_MJD_epoch_set" "', argument " "2"" of type '" "long double""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "hdrinfo_MJD_epoch_set" "', argument " "2"" of type '" "long double""'");
-    } else {
-      arg2 = *((long double *)(argp2));
-    }
-  }
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "hdrinfo_MJD_epoch_set" "', argument " "2"" of type '" "long double""'");
+  } 
+  arg2 = (long double)(val2);
   if (arg1) (arg1)->MJD_epoch = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -4486,7 +4479,7 @@ SWIGINTERN PyObject *_wrap_hdrinfo_MJD_epoch_get(PyObject *SWIGUNUSEDPARM(self),
   }
   arg1 = (struct hdrinfo *)(argp1);
   result = (long double) ((arg1)->MJD_epoch);
-  resultobj = SWIG_NewPointerObj((long double *)memcpy((long double *)malloc(sizeof(long double)),&result,sizeof(long double)), SWIGTYPE_p_long_double, SWIG_POINTER_OWN |  0 );
+  resultobj = SWIG_From_double((double)(result));
   return resultobj;
 fail:
   return NULL;
@@ -9250,7 +9243,7 @@ SWIGINTERN PyObject *_wrap_get_ld(PyObject *SWIGUNUSEDPARM(self), PyObject *args
   } 
   arg1 = (double)(val1);
   result = (long double)get_ld(arg1);
-  resultobj = SWIG_NewPointerObj((long double *)memcpy((long double *)malloc(sizeof(long double)),&result,sizeof(long double)), SWIGTYPE_p_long_double, SWIG_POINTER_OWN |  0 );
+  resultobj = SWIG_From_double((double)(result));
   return resultobj;
 fail:
   return NULL;
@@ -9537,7 +9530,6 @@ static swig_type_info _swigt__p_fitsfile = {"_p_fitsfile", "fitsfile *", 0, 0, (
 static swig_type_info _swigt__p_float = {"_p_float", "float *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_foldinfo = {"_p_foldinfo", "struct foldinfo *|foldinfo *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_hdrinfo = {"_p_hdrinfo", "struct hdrinfo *|hdrinfo *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_long_double = {"_p_long_double", "long double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_polyco = {"_p_polyco", "struct polyco *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_psrfits = {"_p_psrfits", "struct psrfits *|psrfits *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_subint = {"_p_subint", "struct subint *|subint *", 0, 0, (void*)0, 0};
@@ -9551,7 +9543,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_float,
   &_swigt__p_foldinfo,
   &_swigt__p_hdrinfo,
-  &_swigt__p_long_double,
   &_swigt__p_polyco,
   &_swigt__p_psrfits,
   &_swigt__p_subint,
@@ -9565,7 +9556,6 @@ static swig_cast_info _swigc__p_fitsfile[] = {  {&_swigt__p_fitsfile, 0, 0, 0},{
 static swig_cast_info _swigc__p_float[] = {  {&_swigt__p_float, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_foldinfo[] = {  {&_swigt__p_foldinfo, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_hdrinfo[] = {  {&_swigt__p_hdrinfo, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_long_double[] = {  {&_swigt__p_long_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_polyco[] = {  {&_swigt__p_polyco, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_psrfits[] = {  {&_swigt__p_psrfits, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_subint[] = {  {&_swigt__p_subint, 0, 0, 0},{0, 0, 0, 0}};
@@ -9579,7 +9569,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_float,
   _swigc__p_foldinfo,
   _swigc__p_hdrinfo,
-  _swigc__p_long_double,
   _swigc__p_polyco,
   _swigc__p_psrfits,
   _swigc__p_subint,

@@ -11,7 +11,7 @@
 %malloc(unsigned char,ucharp)
 %free(unsigned char,ucharp)
 
+%apply double { long double }
+
 %include "psrfits.h"
 %include "swig_addedfunc.h"
-
-%apply double * { long double * }
