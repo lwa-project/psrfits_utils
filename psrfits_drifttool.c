@@ -117,7 +117,7 @@ printf("1\n");
    int nchan=pfin.hdr.nchan;
    int npol=pfin.hdr.npol;
 
-   pfin.sub.dat_freqs = (float *) malloc(sizeof(float) * nchan);
+   pfin.sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
    pfin.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
    pfin.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
    pfin.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
@@ -202,14 +202,14 @@ printf("2\n");
      int nchan=pfo[ii].hdr.nchan;
      int npol=pfo[ii].hdr.npol;
      printf("bytes_per_subint=%d/%d\n",pfin.sub.bytes_per_subint,(nchan*npol*pfo[ii].hdr.nsblk));
-     pfo[ii].sub.dat_freqs = (float *) malloc(sizeof(float) * nchan);
+     pfo[ii].sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
      pfo[ii].sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
      pfo[ii].sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
      pfo[ii].sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
      pfo[ii].sub.data = (unsigned char *) malloc(pfin.sub.bytes_per_subint);
      pfo[ii].sub.rawdata = (unsigned char *) malloc(pfin.sub.bytes_per_subint);
      pfo[ii].sub.offs=0;
-     filesactive[ii]=0;
+     filesactive[ii]=-1;
    }
    psrfits_close(&pfin);
    rv = psrfits_open(&pfin);   //Open input file again
@@ -224,22 +224,23 @@ printf("2\n");
        if(count>=subintperfile)
        {
          psrfits_close(&pfo[count/subintadvance-2]);
-         filesactive[count/subintadvance-2]=0;
+         filesactive[count/subintadvance-2]=-1;
          printf("Deactivating %d\n",(count/subintadvance-2));
        }
        if(count<(pfin.rows_per_file-subintadvance))
        {
          psrfits_create(&pfo[count/subintadvance]);
-         filesactive[count/subintadvance]=1;
+         filesactive[count/subintadvance]=0;
          printf("Activating %d\n",(count/subintadvance));
        }
      }
      for(ii=0;ii<numfiles;++ii)
      {
-       if(filesactive[ii]==1)
+       if(filesactive[ii]>=0)
        {
          pfo[ii].sub.tsubint=pfin.sub.tsubint;
-         pfo[ii].sub.offs=pfin.sub.offs;
+         pfo[ii].sub.offs=(float)(filesactive[ii])*pfin.sub.tsubint;
+         filesactive[ii]++;
          pfo[ii].sub.lst=pfin.sub.lst;
          pfo[ii].sub.ra=pfin.sub.ra;
          pfo[ii].sub.dec=pfin.sub.dec;
@@ -251,7 +252,7 @@ printf("2\n");
          pfo[ii].sub.tel_az=pfin.sub.tel_az;
          pfo[ii].sub.tel_zen=pfin.sub.tel_zen;
          pfo[ii].sub.FITS_typecode=pfin.sub.FITS_typecode;
-         memcpy(pfo[ii].sub.dat_freqs,pfin.sub.dat_freqs,sizeof(float)*nchan);
+         memcpy(pfo[ii].sub.dat_freqs,pfin.sub.dat_freqs,sizeof(double)*nchan);
          memcpy(pfo[ii].sub.dat_weights,pfin.sub.dat_weights,sizeof(float)*nchan*npol);
          memcpy(pfo[ii].sub.dat_offsets,pfin.sub.dat_offsets,sizeof(float)*nchan*npol);
          memcpy(pfo[ii].sub.dat_scales,pfin.sub.dat_scales,sizeof(float)*nchan*npol);
