@@ -149,14 +149,14 @@ int main(int argc, char *argv[])
    int nbits = pflower.hdr.nbits;
    int nsblk = pflower.hdr.nsblk;
    //Allocate memory for all upper and lower data
-   pflower.sub.dat_freqs = (float *) malloc(sizeof(float) * nchan);
+   pflower.sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
    pflower.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
    pflower.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
    pflower.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
    pflower.sub.rawdata = (unsigned char *) malloc(pflower.sub.bytes_per_subint);
    pflower.sub.data = (unsigned char *) malloc(pflower.sub.bytes_per_subint*2);
 
-   pfupper.sub.dat_freqs = (float *) malloc(sizeof(float) * nchan);
+   pfupper.sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
    pfupper.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
    pfupper.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
    pfupper.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
          pfo.hdr.fctr =         //New center frequency
              pflower.sub.dat_freqs[nchan-1]+pflower.hdr.BW/nchan;
          pfo.sub.bytes_per_subint = pfo.hdr.nchan * nsblk * nbits / 8 * npol;
-         pfo.sub.dat_freqs = (float *) malloc(sizeof(float) * outnchan);
+         pfo.sub.dat_freqs = (double *) malloc(sizeof(double) * outnchan);
          pfo.sub.dat_weights = (float *) malloc(sizeof(float) * outnchan);
          pfo.sub.dat_offsets = (float *) malloc(sizeof(float) * outnchan * npol);
          pfo.sub.dat_scales = (float *) malloc(sizeof(float) * outnchan * npol);
@@ -221,9 +221,9 @@ int main(int argc, char *argv[])
          pfo.sub.FITS_typecode = pflower.sub.FITS_typecode;
 
          //Create variables to reduce column width of lines below
-         float *dat_freqs = pfo.sub.dat_freqs;
-         float *udat_freqs = pfupper.sub.dat_freqs;
-         float *ldat_freqs = pflower.sub.dat_freqs;
+         double *dat_freqs = pfo.sub.dat_freqs;
+         double *udat_freqs = pfupper.sub.dat_freqs;
+         double *ldat_freqs = pflower.sub.dat_freqs;
          float *dat_weights = pfo.sub.dat_weights;
          float *udat_weights = pfupper.sub.dat_weights;
          float *ldat_weights = pflower.sub.dat_weights;
@@ -239,8 +239,8 @@ int main(int argc, char *argv[])
          unsigned char *urawdata = pfupper.sub.rawdata;
          unsigned char *ldata = pflower.sub.data;
          unsigned char *lrawdata = pflower.sub.rawdata;
-         memcpy(dat_freqs,ldat_freqs, sizeof(float) *nchan);
-         memcpy(dat_freqs+nchan,udat_freqs, sizeof(float) *nchan);
+         memcpy(dat_freqs,ldat_freqs, sizeof(double) *nchan);
+         memcpy(dat_freqs+nchan,udat_freqs, sizeof(double) *nchan);
          memcpy(dat_weights,ldat_weights, sizeof(float) *nchan);
          memcpy(dat_weights+nchan,udat_weights, sizeof(float) *nchan);
          memcpy(dat_offsets,ldat_offsets, sizeof(float) *nchan);

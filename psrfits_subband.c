@@ -34,7 +34,7 @@ struct subband_info {
     double *chan_delays;
     int *idelays;
     int *numnonzero;
-    float *sub_freqs;
+    double *sub_freqs;
     float *weights;
     float *userwgts;
     float *offsets;
@@ -208,7 +208,7 @@ void init_subbanding(int nsub, double dm,
     }
     si->dm = dm;
     si->sub_df = pfi->hdr.df * si->chan_per_sub;
-    si->sub_freqs = (float *)malloc(sizeof(float) * si->nsub);
+    si->sub_freqs = (double *)malloc(sizeof(double) * si->nsub);
     si->chan_delays = (double *)malloc(sizeof(double) * si->nchan);
     si->sub_delays = (double *)malloc(sizeof(double) * si->nsub);
     si->idelays = (int *)malloc(sizeof(int) * si->nchan * si->npol);
@@ -221,7 +221,7 @@ void init_subbanding(int nsub, double dm,
     si->chan_stds = (float *)malloc(sizeof(float) * si->bufwid);
 
     /* Alloc data buffers for the input PSRFITS file */
-    pfi->sub.dat_freqs = (float *)malloc(sizeof(float) * pfi->hdr.nchan);
+    pfi->sub.dat_freqs = (double *)malloc(sizeof(double) * pfi->hdr.nchan);
     pfi->sub.dat_weights = (float *)malloc(sizeof(float) * pfi->hdr.nchan);
     si->intwgts = (unsigned char *)malloc(pfi->hdr.nchan * pfi->hdr.npol);
     pfi->sub.dat_offsets = (float *)malloc(sizeof(float)
