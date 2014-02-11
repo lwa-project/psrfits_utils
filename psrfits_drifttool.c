@@ -113,7 +113,6 @@ int main(int argc, char *argv[])
 //   fits_update_key(outfits, TSTRING, "IBEAM", ibeam, "Beam number for multibeam systems", &status);
 
 //   fits_close_file(outfits, &status);
-printf("1\n");   
    int nchan=pfin.hdr.nchan;
    int npol=pfin.hdr.npol;
 
@@ -121,7 +120,7 @@ printf("1\n");
    pfin.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
    pfin.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
    pfin.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
-   pfin.sub.data = (unsigned char *) malloc(pfin.sub.bytes_per_subint);
+   pfin.sub.data = (unsigned char *) malloc(pfin.sub.bytes_per_subint*2);
    pfin.sub.rawdata = (unsigned char *) malloc(pfin.sub.bytes_per_subint);
    int count=0;
    char ralist[numfiles][16];
@@ -130,12 +129,9 @@ printf("1\n");
    double decdeglist[numfiles];
    char basefilenames[numfiles][100];
    int ii;
-printf("2\n");   
    while (count<pfin.rows_per_file)
    {
-//printf("3\n");   
      psrfits_read_subint(&pfin);
-//printf("4\n");   
      for(ii=0;ii<numfiles;++ii)
      {
        if(count==subintadvance*ii+subintperfile/2)
@@ -201,12 +197,11 @@ printf("2\n");
      pfo[ii].hdr.dec2000=decdeglist[ii];
      int nchan=pfo[ii].hdr.nchan;
      int npol=pfo[ii].hdr.npol;
-     printf("bytes_per_subint=%d/%d\n",pfin.sub.bytes_per_subint,(nchan*npol*pfo[ii].hdr.nsblk));
      pfo[ii].sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
      pfo[ii].sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
      pfo[ii].sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
      pfo[ii].sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
-     pfo[ii].sub.data = (unsigned char *) malloc(pfin.sub.bytes_per_subint);
+     pfo[ii].sub.data = (unsigned char *) malloc(pfin.sub.bytes_per_subint*2);
      pfo[ii].sub.rawdata = (unsigned char *) malloc(pfin.sub.bytes_per_subint);
      pfo[ii].sub.offs=0;
      filesactive[ii]=-1;
@@ -216,30 +211,28 @@ printf("2\n");
    count=0;
    while(count<pfin.rows_per_file)
    {
-     printf("Count:%d/%d\n",count,pfin.rows_per_file);
      psrfits_read_subint(&pfin);
-     printf("%d\n",pfin.sub.rawdata[0]);
      if(count%subintadvance==0)
      {
        if(count>=subintperfile)
        {
          psrfits_close(&pfo[count/subintadvance-2]);
          filesactive[count/subintadvance-2]=-1;
-         printf("Deactivating %d\n",(count/subintadvance-2));
        }
        if(count<(pfin.rows_per_file-subintadvance))
        {
          psrfits_create(&pfo[count/subintadvance]);
          filesactive[count/subintadvance]=0;
-         printf("Activating %d\n",(count/subintadvance));
        }
      }
      for(ii=0;ii<numfiles;++ii)
      {
        if(filesactive[ii]>=0)
        {
+         if(filesactive[ii]==0)
+           pfo[ii].hdr.MJD_epoch=pfin.hdr.MJD_epoch+(pfin.sub.offs/86400.0);
          pfo[ii].sub.tsubint=pfin.sub.tsubint;
-         pfo[ii].sub.offs=(float)(filesactive[ii])*pfin.sub.tsubint;
+         pfo[ii].sub.offs=(float)(filesactive[ii])*pfin.sub.tsubint+0.5;
          filesactive[ii]++;
          pfo[ii].sub.lst=pfin.sub.lst;
          pfo[ii].sub.ra=pfin.sub.ra;
@@ -257,9 +250,7 @@ printf("2\n");
          memcpy(pfo[ii].sub.dat_offsets,pfin.sub.dat_offsets,sizeof(float)*nchan*npol);
          memcpy(pfo[ii].sub.dat_scales,pfin.sub.dat_scales,sizeof(float)*nchan*npol);
          memcpy(pfo[ii].sub.data,pfin.sub.data,pfin.sub.bytes_per_subint);
-         printf("%d:%d ",ii,pfin.sub.rawdata[0]);
          memcpy(pfo[ii].sub.rawdata,pfin.sub.rawdata,pfin.sub.bytes_per_subint);
-         printf("%d\n",pfo[ii].sub.rawdata[0]);
          psrfits_write_subint(&pfo[ii]);
        }
      }
