@@ -138,7 +138,7 @@ int psrfits_open(struct psrfits *pf) {
 
 
 void apply_scales_and_offsets(int numchan, int numpol, int numspect,
-                              float *scales, float *offsets,
+                              double *scales, double *offsets,
                               unsigned char *inbuf, float *outbuf)
 {
     int ii, jj;
@@ -147,8 +147,8 @@ void apply_scales_and_offsets(int numchan, int numpol, int numspect,
     const int N = numchan * numpol;
 
     for (ii = 0 ; ii < numspect ; ii++) {
-        float *sptr = scales;
-        float *optr = offsets;
+        double *sptr = scales;
+        double *optr = offsets;
         for (jj = 0 ; jj < N ; jj++, sptr++, optr++, inptr++, outptr++) {
             *outptr = *sptr * (float)(*inptr) + *optr;
         }
@@ -249,10 +249,10 @@ int psrfits_read_subint(struct psrfits *pf) {
     fits_read_col(pf->fptr, TFLOAT, colnum, row, 1, nchan, NULL, sub->dat_weights,
             NULL, status);
     fits_get_colnum(pf->fptr, 0, "DAT_OFFS", &colnum, status);
-    fits_read_col(pf->fptr, TFLOAT, colnum, row, 1, nivals, NULL, sub->dat_offsets,
+    fits_read_col(pf->fptr, TDOUBLE, colnum, row, 1, nivals, NULL, sub->dat_offsets,
             NULL, status);
     fits_get_colnum(pf->fptr, 0, "DAT_SCL", &colnum, status);
-    fits_read_col(pf->fptr, TFLOAT, colnum, row, 1, nivals, NULL, sub->dat_scales,
+    fits_read_col(pf->fptr, TDOUBLE, colnum, row, 1, nivals, NULL, sub->dat_scales,
             NULL, status);
     fits_get_colnum(pf->fptr, 0, "DATA", &colnum, status);
     if (mode==SEARCH_MODE) {
@@ -308,7 +308,7 @@ int psrfits_read_part_DATA(struct psrfits *pf, int N, float *fbuffer) {
     int nivals = hdr->nchan * hdr->npol;
     long long numdata = (long long) nivals * (long long) N;
     long long bytes_to_read = (hdr->nbits * numdata) / 8L;
-    float *offsets = (float *)malloc(sizeof(float) * nivals);
+    double *offsets = (double *)malloc(sizeof(double) * nivals);
     float *scales = (float *)malloc(sizeof(float) * nivals);
     unsigned char *buffer = (unsigned char *)malloc(numdata);
     unsigned char *rawbuffer = buffer;
@@ -318,7 +318,7 @@ int psrfits_read_part_DATA(struct psrfits *pf, int N, float *fbuffer) {
 
     // Now read the data
     fits_get_colnum(pf->fptr, 0, "DAT_OFFS", &colnum, status);
-    fits_read_col(pf->fptr, TFLOAT, colnum, pf->rownum, 1, nivals,
+    fits_read_col(pf->fptr, TDOUBLE, colnum, pf->rownum, 1, nivals,
                   NULL, offsets, NULL, status);
     fits_get_colnum(pf->fptr, 0, "DAT_SCL", &colnum, status);
     fits_read_col(pf->fptr, TFLOAT, colnum, pf->rownum, 1, nivals,

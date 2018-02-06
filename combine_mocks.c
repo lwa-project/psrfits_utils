@@ -32,7 +32,7 @@ static void print_percent_complete(int current, int number, int reset)
 }
 
 //Routine taken from PRESTO
-void avg_var(float *x, int n, double *mean, double *var)
+void avg_var(double *x, int n, double *mean, double *var)
 /* For a float vector, *x, of length n, this routine  */
 /* returns the mean and variance of *x.               */
 {
@@ -149,17 +149,17 @@ int main(int argc, char *argv[])
    int nbits = pflower.hdr.nbits;
    int nsblk = pflower.hdr.nsblk;
    //Allocate memory for all upper and lower data
-   pflower.sub.dat_freqs = (float *) malloc(sizeof(float) * nchan);
-   pflower.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
-   pflower.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
-   pflower.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
+   pflower.sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
+   pflower.sub.dat_weights = (double *) malloc(sizeof(double) * nchan);
+   pflower.sub.dat_offsets = (double *) malloc(sizeof(double) * nchan * npol);
+   pflower.sub.dat_scales = (double *) malloc(sizeof(double) * nchan * npol);
    pflower.sub.rawdata = (unsigned char *) malloc(pflower.sub.bytes_per_subint);
    pflower.sub.data = (unsigned char *) malloc(pflower.sub.bytes_per_subint*2);
 
-   pfupper.sub.dat_freqs = (float *) malloc(sizeof(float) * nchan);
-   pfupper.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
-   pfupper.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
-   pfupper.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
+   pfupper.sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
+   pfupper.sub.dat_weights = (double *) malloc(sizeof(double) * nchan);
+   pfupper.sub.dat_offsets = (double *) malloc(sizeof(double) * nchan * npol);
+   pfupper.sub.dat_scales = (double *) malloc(sizeof(double) * nchan * npol);
    pfupper.sub.rawdata = (unsigned char *) malloc(pfupper.sub.bytes_per_subint);
    pfupper.sub.data = (unsigned char *) malloc(pfupper.sub.bytes_per_subint*2);
 
@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
          //Allocate space for output data now that we know the new number of channels
          pfo.sub.dat_freqs = (float *) malloc(sizeof(float) * outnchan);
          pfo.sub.dat_weights = (float *) malloc(sizeof(float) * outnchan);
-         pfo.sub.dat_offsets = (float *) malloc(sizeof(float) * outnchan * npol);
-         pfo.sub.dat_scales = (float *) malloc(sizeof(float) * outnchan * npol);
+         pfo.sub.dat_offsets = (double *) malloc(sizeof(double) * outnchan * npol);
+         pfo.sub.dat_scales = (double *) malloc(sizeof(double) * outnchan * npol);
          pfo.sub.rawdata = (unsigned char *) malloc(pfo.sub.bytes_per_subint);
          pfo.sub.data = (unsigned char *) malloc(pfo.sub.bytes_per_subint*2);
          newuppernchan = nchan - upchanskip;    //The number of channels to copy from the upper sideband.
