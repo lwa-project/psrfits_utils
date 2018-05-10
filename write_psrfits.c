@@ -105,6 +105,7 @@ int psrfits_create(struct psrfits *pf) {
         printf("in fold mode.\n");
         sprintf(template_file, "%s/%s", template_dir, PSRFITS_FOLD_TEMPLATE);
     }
+    printf("%s\n",template_file);
     fits_create_template(&(pf->fptr), pf->filename, template_file, status);
 
     // Check to see if file was successfully created

@@ -32,12 +32,12 @@ static void print_percent_complete(int current, int number, int reset)
 }
 
 //Routine taken from PRESTO
-void avg_var(double *x, int n, double *mean, double *var)
+void avg_var(float *x, int n, float *mean, float *var)
 /* For a float vector, *x, of length n, this routine  */
 /* returns the mean and variance of *x.               */
 {
    long i;
-   double an = 0.0, an1 = 0.0, dx;
+   float an = 0.0, an1 = 0.0, dx;
 
    /*  Modified (29 June 98) C version of the following:        */
    /*  ALGORITHM AS 52  APPL. STATIST. (1972) VOL.21, P.226     */
@@ -47,13 +47,13 @@ void avg_var(double *x, int n, double *mean, double *var)
       printf("\vVector length must be > 0 in avg_var().  Exiting\n");
       exit(1);
    } else {
-      *mean = (double) x[0];
+      *mean = (float) x[0];
       *var = 0.0;
    }
 
    for (i = 1; i < n; i++) {
-      an = (double) (i + 1);
-      an1 = (double) (i);
+      an = (float) (i + 1);
+      an1 = (float) (i);
       dx = (x[i] - *mean) / an;
       *var += an * an1 * dx * dx;
       *mean += dx;
@@ -150,16 +150,16 @@ int main(int argc, char *argv[])
    int nsblk = pflower.hdr.nsblk;
    //Allocate memory for all upper and lower data
    pflower.sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
-   pflower.sub.dat_weights = (double *) malloc(sizeof(double) * nchan);
-   pflower.sub.dat_offsets = (double *) malloc(sizeof(double) * nchan * npol);
-   pflower.sub.dat_scales = (double *) malloc(sizeof(double) * nchan * npol);
+   pflower.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
+   pflower.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
+   pflower.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
    pflower.sub.rawdata = (unsigned char *) malloc(pflower.sub.bytes_per_subint);
    pflower.sub.data = (unsigned char *) malloc(pflower.sub.bytes_per_subint*2);
 
    pfupper.sub.dat_freqs = (double *) malloc(sizeof(double) * nchan);
-   pfupper.sub.dat_weights = (double *) malloc(sizeof(double) * nchan);
-   pfupper.sub.dat_offsets = (double *) malloc(sizeof(double) * nchan * npol);
-   pfupper.sub.dat_scales = (double *) malloc(sizeof(double) * nchan * npol);
+   pfupper.sub.dat_weights = (float *) malloc(sizeof(float) * nchan);
+   pfupper.sub.dat_offsets = (float *) malloc(sizeof(float) * nchan * npol);
+   pfupper.sub.dat_scales = (float *) malloc(sizeof(float) * nchan * npol);
    pfupper.sub.rawdata = (unsigned char *) malloc(pfupper.sub.bytes_per_subint);
    pfupper.sub.data = (unsigned char *) malloc(pfupper.sub.bytes_per_subint*2);
 
@@ -206,10 +206,10 @@ int main(int argc, char *argv[])
          pfo.sub.bytes_per_subint =     //Calculate new number of bytes in each subint
              outnchan * nsblk * nbits / 8 * npol;
          //Allocate space for output data now that we know the new number of channels
-         pfo.sub.dat_freqs = (float *) malloc(sizeof(float) * outnchan);
+         pfo.sub.dat_freqs = (double *) malloc(sizeof(double) * outnchan);
          pfo.sub.dat_weights = (float *) malloc(sizeof(float) * outnchan);
-         pfo.sub.dat_offsets = (double *) malloc(sizeof(double) * outnchan * npol);
-         pfo.sub.dat_scales = (double *) malloc(sizeof(double) * outnchan * npol);
+         pfo.sub.dat_offsets = (float *) malloc(sizeof(float) * outnchan * npol);
+         pfo.sub.dat_scales = (float *) malloc(sizeof(float) * outnchan * npol);
          pfo.sub.rawdata = (unsigned char *) malloc(pfo.sub.bytes_per_subint);
          pfo.sub.data = (unsigned char *) malloc(pfo.sub.bytes_per_subint*2);
          newuppernchan = nchan - upchanskip;    //The number of channels to copy from the upper sideband.
@@ -224,8 +224,8 @@ int main(int argc, char *argv[])
          loweroffset =          //Number of bytes to skip due to having written previous lower band data
              (nchan * npol);
          numtocopylower = (newlowernchan * npol);   //Number of bytes to copy from lower band
-         double upmean, upvar, lowmean, lowvar;
-         avg_var(pfupper.sub.dat_offsets + (nchan - upchanskip),        //Find the mean and variance of the upper band's offsets
+         float upmean, upvar, lowmean, lowvar;
+         avg_var(pfupper.sub.dat_offsets + (nchan - upchanskip),              //Find the mean and variance of the upper band's offsets
                  upchanskip, &upmean, &upvar);
          printf("Upper offset stats: mean=%f variance=%f\n", upmean, upvar);
          avg_var(pflower.sub.dat_offsets, lowchanskip, &lowmean, &lowvar);      //Find the mean and variance of the lower band's offsets
@@ -255,11 +255,10 @@ int main(int argc, char *argv[])
          pfo.sub.tel_az = pflower.sub.tel_az;
          pfo.sub.tel_zen = pflower.sub.tel_zen;
          pfo.sub.FITS_typecode = pflower.sub.FITS_typecode;
-
          //Create variables to reduce column width of lines below
-         float *dat_freqs = pfo.sub.dat_freqs;
-         float *udat_freqs = pfupper.sub.dat_freqs;
-         float *ldat_freqs = pflower.sub.dat_freqs;
+         double *dat_freqs = pfo.sub.dat_freqs;
+         double *udat_freqs = pfupper.sub.dat_freqs;
+         double *ldat_freqs = pflower.sub.dat_freqs;
          float *dat_weights = pfo.sub.dat_weights;
          float *udat_weights = pfupper.sub.dat_weights;
          float *ldat_weights = pflower.sub.dat_weights;
@@ -279,9 +278,9 @@ int main(int argc, char *argv[])
             dat_freqs[0] = dat_freqs[1] + fabs(df);     //for our two empty frequency channels
             int newuppernchan = nchan - upchanskip;     //The number of channels to copy from the upper band
             int newlowernchan = nchan - lowchanskip;    //The number of channels to copy from the lower band
-            memcpy(dat_freqs + 2, udat_freqs, sizeof(float) * newuppernchan);   //Copy from the upper band, skipping first two chans.
+            memcpy(dat_freqs + 2, udat_freqs, sizeof(double) * newuppernchan);   //Copy from the upper band, skipping first two chans.
             memcpy(dat_freqs + newuppernchan + 2,       //Copy from the lower band
-                   ldat_freqs + lowchanskip, sizeof(float) * newlowernchan);
+                   ldat_freqs + lowchanskip, sizeof(double) * newlowernchan);
             //Copy weights
             dat_weights[0] = dat_weights[1] = 0;        //Set the weights of first two channels to 0, so they shouldn't be used in calculations
             memcpy(dat_weights + 2, udat_weights,       //Copy weights from the upper band
