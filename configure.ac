@@ -7,8 +7,8 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 m4_ifdef([AM_PROG_AR],[AM_PROG_AR])
 AC_PROG_CC
 AC_PROG_LIBTOOL
-AM_PATH_PYTHON(2.3)
-AX_PKG_SWIG(1.3.17, [], [ AC_MSG_ERROR([SWIG is required to build..]) ])
+AM_PATH_PYTHON(2.6)
+AX_PKG_SWIG(2.0, [], [ AC_MSG_ERROR([SWIG >= 2.0 is required to build.]) ])
 AX_SWIG_MULTI_MODULE_SUPPORT
 AX_SWIG_PYTHON
 
