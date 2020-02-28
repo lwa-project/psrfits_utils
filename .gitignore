@@ -6,6 +6,9 @@
 *~
 *.fits
 *GBNCC*
+__pycache__
+psrfits_utils.py
+psrfits_utils_wrap.c
 Makefile
 Makefile.in
 aclocal.m4
@@ -28,9 +31,12 @@ config/compile
 configure
 fold_psrfits
 libtool
+psrfits_drifttool
 psrfits_singlepulse
 psrfits_subband
 mpimerge_psrfits
 find_dropped_blocks
+combine_lwa
+combine_lwa2
 combine_mocks
 ignore
