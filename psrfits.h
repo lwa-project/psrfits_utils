@@ -55,7 +55,8 @@ struct hdrinfo {
     int nchan;              // Number of channels
     int npol;               // Number of polarizations to be stored (1 for summed)
     int nsblk;              // Number of spectra per row
-    int orig_nchan;         // Number of spectral channels per sample
+    int orig_nchan;         // Original number of spectral channels per sample
+    int orig_nbits;         // Number of bits original data had
     int summed_polns;       // Are polarizations summed? (1=Yes, 0=No)
     int rcvr_polns;         // Number of polns provided by the receiver
     int offset_subint;      // Offset subint number for first row in the file
@@ -105,6 +106,7 @@ struct psrfits {
     long long N;            // Current number of spectra written
     double T;               // Current duration of the observation written
     int filenum;            // The current number of the file in the scan (1-offset)
+    int numfiles;           // The number of input files (if specified, 0 if basefilename)
     int rownum;             // The current subint number to be written (1-offset)
     int tot_rows;           // The total number of subints written so far
     int rows_per_file;      // The maximum number of rows (subints) per file
@@ -113,6 +115,7 @@ struct psrfits {
     int multifile;          // Write multiple output files
     int quiet;              // Be quiet about writing each subint
     char mode;              // Read (r) or write (w).
+    char **filenames;       // Array of the input file names
     struct hdrinfo hdr;
     struct subint sub;
     struct foldinfo fold;   
@@ -131,9 +134,12 @@ int psrfits_remove_polycos(struct psrfits *pf);
 int psrfits_remove_ephem(struct psrfits *pf);
 
 // In read_psrfits.c
+int is_search_PSRFITS(char *filename);
+void psrfits_set_files(struct psrfits *pf, int numfiles, char *filenames[]);
 int psrfits_open(struct psrfits *pf);
 int psrfits_read_subint(struct psrfits *pf);
-int psrfits_read_part_DATA(struct psrfits *pf, int N, float *fbuffer);
-void scale_and_offset_data(struct psrfits *pf);
+int psrfits_read_part_DATA(struct psrfits *pf, int N, int numunsigned, 
+                           float *fbuffer);
+void scale_and_offset_data(struct psrfits *pf, int numunsigned);
 
 #endif

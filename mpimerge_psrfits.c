@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <getopt.h>
@@ -32,13 +33,16 @@ void usage() {
            "  -o name, --output=name   Output base filename (auto-generate)\n"
            "  -i nn, --initial=nn      Starting input file number (1)\n"
            "  -f nn, --final=nn        Ending input file number (auto)\n"
+           "  -s nn, --starthpc=nn     hpc ID for first file\n"
+           "  -V dir, --vegas=dir      Use VEGAS filenames, in specified dir\n"
+           "  -r, --reverse            Combine files in reverse order\n"
            "\n");
 }
 
 
 int main(int argc, char *argv[])
 {
-    int ii, nc = 0, ncnp = 0, gpubps = 0, status = 0, statsum = 0;
+    int ii, ipol, nc = 0, ncnp = 0, gpubps = 0, status = 0, statsum = 0;
     int fnum_start = 1, fnum_end = 0;
     int numprocs, numbands, myid, baddata = 0, droppedrow = 0;
     int *counts, *offsets;
@@ -48,14 +52,20 @@ int main(int argc, char *argv[])
         double value;
         int index;
     } offs_in, offs_out;
-    char hostname[100];
+    char hostname[256];
+    char vegas_base_dir[256] = "\0";
     char output_base[256] = "\0";
+    int starthpc = 0;
+    int reverse = 0;
     MPI_Status mpistat;
     /* Cmd line */
     static struct option long_opts[] = {
         {"output",  1, NULL, 'o'},
         {"initial", 1, NULL, 'i'},
         {"final",   1, NULL, 'f'},
+        {"vegas",   1, NULL, 'V'},
+        {"starthpc",1, NULL, 's'},
+        {"reverse" ,0, NULL, 'r'},
         {0,0,0,0}
     };
     int opt, opti;
@@ -66,7 +76,7 @@ int main(int argc, char *argv[])
     numbands = numprocs - 1;
 
     // Process the command line
-    while ((opt=getopt_long(argc,argv,"o:i:f:",long_opts,&opti))!=-1) {
+    while ((opt=getopt_long(argc,argv,"o:i:f:V:s:r",long_opts,&opti))!=-1) {
         switch (opt) {
         case 'o':
             strncpy(output_base, optarg, 255);
@@ -77,6 +87,15 @@ int main(int argc, char *argv[])
             break;
         case 'f':
             fnum_end = atoi(optarg);
+            break;
+        case 'V':
+            strcpy(vegas_base_dir, optarg);
+            break;
+        case 's':
+            starthpc = atoi(optarg);
+            break;
+        case 'r':
+            reverse = 1;
             break;
         default:
             if (myid==0) usage();
@@ -99,37 +118,55 @@ int main(int argc, char *argv[])
 
     // Determine the hostnames of the processes
     {
-        FILE *hostfile;
-        
-        hostfile = fopen("/etc/hostname", "r");
-        fscanf(hostfile, "%s\n", hostname);
-        fclose(hostfile);
-        if (hostname != NULL) {
+        if (gethostname(hostname, 255) < 0)
+            strcpy(hostname, "unknown");
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (myid == 0) printf("\n");
+        fflush(NULL);
+        for (ii = 0 ; ii < numprocs ; ii++) {
             MPI_Barrier(MPI_COMM_WORLD);
-            if (myid == 0) printf("\n");
+            if (myid == ii)
+                printf("Process %3d is on machine %s\n", myid, hostname);
             fflush(NULL);
-            for (ii = 0 ; ii < numprocs ; ii++) {
-                MPI_Barrier(MPI_COMM_WORLD);
-                if (myid == ii)
-                    printf("Process %3d is on machine %s\n", myid, hostname);
-                fflush(NULL);
-                MPI_Barrier(MPI_COMM_WORLD);
-            }
             MPI_Barrier(MPI_COMM_WORLD);
-            fflush(NULL);
         }
+        MPI_Barrier(MPI_COMM_WORLD);
+        fflush(NULL);
     }
     
     // Basefilenames for the GPU nodes
     if (myid > 0) {
-        sprintf(pf.basefilename, "/data/gpu/partial/%s/%s", 
-                hostname, argv[optind]);
+
+        // Default to GUPPI mode
+        if (vegas_base_dir[0]=='\0') 
+            sprintf(pf.basefilename, "/data/gpu/partial/%s/%s", 
+                    hostname, argv[optind]);
+
+        // VEGAS mode
+        else {
+
+            int hpcidx;
+            if (reverse)
+                hpcidx = starthpc - myid + 1;
+            else
+                hpcidx = myid + starthpc - 1;
+
+            sprintf(pf.basefilename, "%s/vegas-hpc%d-bdata1/%s", 
+                    vegas_base_dir, hpcidx, argv[optind]);
+
+            printf("**********: hostname = %s, myid = %d, datamnt = %d, basename=%s\n", 
+                    hostname, myid, hpcidx, pf.basefilename);
+
+        }
     }
 
     // Initialize some key parts of the PSRFITS structure
     pf.tot_rows = pf.N = pf.T = pf.status = 0;
     pf.filenum = fnum_start;
     pf.filename[0] = '\0';
+    pf.filenames = NULL;
+    pf.numfiles = 0;
 
     if (myid == 1) {
         FILE *psrfitsfile;
@@ -157,11 +194,16 @@ int main(int argc, char *argv[])
         psrfitsfile = fopen(tmpfilenm, "w");
         fwrite(&hdr, 1, HDRLEN, psrfitsfile);
         fclose(psrfitsfile); 
-        sprintf(pf.filename, "%s", tmpfilenm);
+        pf.filenames = (char **)malloc(sizeof(char *));
+        pf.filenames[0] = tmpfilenm;
+        pf.basefilename[0]='\0';
+        pf.filenum = 0;
+        pf.numfiles = 1;
 
         // And read the key information into a PSRFITS struct
         status = psrfits_open(&pf);
         status = psrfits_close(&pf);
+        free(pf.filenames);
         remove(tmpfilenm);
 
         // Now create the output PSTFITS file
@@ -170,9 +212,11 @@ int main(int argc, char *argv[])
             strcpy(output_base, argv[optind]);
         }
         strcpy(pf.basefilename, output_base);
-        pf.filenum = 0;
         pf.multifile = 1;
+        pf.filenum = 0;
+        pf.numfiles = 0;
         pf.filename[0] = '\0';
+        pf.filenames = NULL;
         nc = pf.hdr.nchan;
         ncnp = pf.hdr.nchan * pf.hdr.npol;
         gpubps = pf.sub.bytes_per_subint;
@@ -204,7 +248,8 @@ int main(int argc, char *argv[])
     pf.sub.dat_scales  = (float *)malloc(sizeof(float) * 
                                          pf.hdr.nchan * pf.hdr.npol);
     pf.sub.data = (unsigned char *)malloc(pf.sub.bytes_per_subint);
-
+    pf.sub.rawdata = pf.sub.data; 
+    
     // Counts and offsets for MPI_Gatherv
     counts = (int *)malloc(sizeof(int) * numprocs);
     offsets = (int *)malloc(sizeof(int) * numprocs);
@@ -333,16 +378,18 @@ int main(int argc, char *argv[])
                              0, MPI_COMM_WORLD);
         
         // Vectors of length nchan * npol
-        for (ii = 1 ; ii < numprocs ; ii++) {
-            counts[ii] = ncnp;
-            offsets[ii] = (ii - 1) * ncnp;
+        for (ipol=0; ipol < pf.hdr.npol; ipol++) {
+            for (ii = 1 ; ii < numprocs ; ii++) {
+                counts[ii] = nc;
+                offsets[ii] = ipol*nc*numbands + (ii - 1) * nc;
+            }
+            status = MPI_Gatherv(pf.sub.dat_offsets+(ipol*nc), nc, MPI_FLOAT, 
+                                 pf.sub.dat_offsets, counts, offsets, 
+                                 MPI_FLOAT, 0, MPI_COMM_WORLD);
+            status = MPI_Gatherv(pf.sub.dat_scales+(ipol*nc), nc, MPI_FLOAT, 
+                                 pf.sub.dat_scales, counts, offsets, 
+                                 MPI_FLOAT, 0, MPI_COMM_WORLD);
         }
-        status = MPI_Gatherv(pf.sub.dat_offsets, ncnp, MPI_FLOAT, 
-                             pf.sub.dat_offsets, counts, offsets, MPI_FLOAT, 
-                             0, MPI_COMM_WORLD);
-        status = MPI_Gatherv(pf.sub.dat_scales, ncnp, MPI_FLOAT, 
-                             pf.sub.dat_scales, counts, offsets, MPI_FLOAT, 
-                             0, MPI_COMM_WORLD);
 
         // Vectors of length pf.sub.bytes_per_subint for the raw data
         for (ii = 1 ; ii < numprocs ; ii++) {

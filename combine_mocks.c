@@ -84,30 +84,14 @@ int main(int argc, char *argv[])
    }
    // Parse the command line using the excellent program Clig
    cmd = parseCmdline(argc, argv);
+
    pfupper.tot_rows = pfupper.N = pfupper.T = pfupper.status = 0;       //Initialize upper band
    pflower.tot_rows = pflower.N = pflower.T = pflower.status = 0;       //Initialize lower band
-   pfupper.filenum = pflower.filenum = 1;
    pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0;       //Initialize output
-   sprintf(pfupper.filename, cmd->argv[0]);     //Copy filename specified on command line to
-   sprintf(pflower.filename, cmd->argv[0]);     //upper and lower bands, will correct filenames shortly
-   if ((pc2 = strstr(pfupper.filename, "s1")) != NULL)  //Upper contains s1, change to s0
-      strncpy(pc2, "s0", 2);
-   else if ((pc2 = strstr(pflower.filename, "s0")) != NULL)     //Lower contains s0, change to s1
-      strncpy(pc2, "s1", 2);
-   else {
-      printf("Unable to determine which sideband is which\n");
-      exit(EXIT_FAILURE);
-   }
-   //Setting the name of the output file, setting as same name as input file, but removing s0/s1. 
-   pc1 = strstr(pflower.filename, "s1");
-   pc2 = strrchr(pflower.filename, '.');        //At '.fits'
-   pc2--;
-   while ((pc2 >= pflower.filename) && isdigit(*pc2))   //Move through the digits to the separation char.
-      pc2--;
-   strncpy(outfilename, pflower.filename, pc1 - pflower.filename);      //Copy everything up to s1 into outfilename
-   strncpy(outfilename + (pc1 - pflower.filename), pc1 + 2, pc2 - pc1 - 2);     //Concatenate from after s1 to char before the separation char.
-   pc1 = outfilename + (pc2 - pflower.filename - 2);
-   *pc1 = 0;
+
+   psrfits_set_files(&pflower, 1, &cmd->argv[1]);
+   psrfits_set_files(&pfupper, 1, &cmd->argv[0]);
+
    int rv = psrfits_open(&pfupper);   //Open upper band
    if (rv) {
       fits_report_error(stderr, rv);
@@ -119,10 +103,23 @@ int main(int argc, char *argv[])
       exit(1);
    }
    pfo = pflower;               //Copy all lower band variables into the output struct
-   if (!cmd->outputbasenameP)
-      sprintf(pfo.basefilename, basename(outfilename));
-   else
-      sprintf(pfo.basefilename, cmd->outputbasename);
+   if (!cmd->outputbasenameP) {
+       //Setting the name of the output file, setting as same name as input file, but removing s0/s1. 
+       pc1 = strstr(pflower.filename, "s1");
+       pc2 = strrchr(pflower.filename, '.');        //At '.fits'
+       pc2--;
+       while ((pc2 >= pflower.filename) && isdigit(*pc2))   //Move through the digits to the separation char.
+           pc2--;
+       strncpy(outfilename, pflower.filename, pc1 - pflower.filename);      //Copy everything up to s1 into outfilename
+       printf("outfilename = '%s'\n", outfilename);
+       strncpy(outfilename + (pc1 - pflower.filename), pc1 + 2, pc2 - pc1 - 2);     //Concatenate from after s1 to char before the separation char.
+       printf("2 outfilename = '%s'\n", outfilename);
+       pc1 = outfilename + (pc2 - pflower.filename - 2);
+       *pc1 = 0;
+       sprintf(pfo.basefilename, basename(outfilename));
+   } else
+       sprintf(pfo.basefilename, cmd->outputbasename);
+   pfo.numfiles = 0;
    pfo.filenum = 0;
    sprintf(pfo.filename, "\0"); //Set filename to null so psrfits_open will create the filename for me
    pfo.rownum = 1;
@@ -224,8 +221,8 @@ int main(int argc, char *argv[])
          loweroffset =          //Number of bytes to skip due to having written previous lower band data
              (nchan * npol);
          numtocopylower = (newlowernchan * npol);   //Number of bytes to copy from lower band
-         float upmean, upvar, lowmean, lowvar;
-         avg_var(pfupper.sub.dat_offsets + (nchan - upchanskip),              //Find the mean and variance of the upper band's offsets
+         double upmean, upvar, lowmean, lowvar;
+         avg_var(pfupper.sub.dat_offsets + (nchan - upchanskip),        //Find the mean and variance of the upper band's offsets
                  upchanskip, &upmean, &upvar);
          printf("Upper offset stats: mean=%f variance=%f\n", upmean, upvar);
          avg_var(pflower.sub.dat_offsets, lowchanskip, &lowmean, &lowvar);      //Find the mean and variance of the lower band's offsets

@@ -20,7 +20,7 @@ void cc(int sig) { run=0; }
 
 void usage() {
     printf(
-            "Usage: fold_psrfits [options] input_filename_base\n"
+            "Usage: fold_psrfits [options] input_filename_base or filenames\n"
             "Options:\n"
             "  -h, --help               Print this\n"
             "  -o name, --output=name   Output base filename (auto-generate)\n"
@@ -37,7 +37,9 @@ void usage() {
             "  -u, --unsigned           Raw data is unsigned\n"
             "  -U n, --nunsigned        Num of unsigned polns\n"
             "  -S size, --split=size    Approximate max size per output file, GB (1)\n"
-            "  -A, --apply              Apply input scale/offset to the results\n",
+            "  -A, --apply              Apply input scale/offset to the results\n"
+            "  -T nn, --start=nn        Start nn seconds in to the set\n"
+            "  -E nn, --end=nn          Stop nn seconds in to the set\n"
             "  -q, --quiet              No progress indicator\n"
           );
 }
@@ -62,6 +64,8 @@ int main(int argc, char *argv[]) {
         {"split",   1, NULL, 'S'},
         {"apply",   0, NULL, 'A'},
         {"quiet",   0, NULL, 'q'},
+        {"start",   1, NULL, 'T'},
+        {"end",     1, NULL, 'E'},
         {"help",    0, NULL, 'h'},
         {0,0,0,0}
     };
@@ -71,11 +75,12 @@ int main(int argc, char *argv[]) {
     double split_size_gb = 1.0;
     double tfold = 60.0; 
     double fold_frequency=0.0;
+    double tstart=-1.0, tend=-1.0;
     char output_base[256] = "";
     char polyco_file[256] = "";
     char par_file[256] = "";
     char source[24];  source[0]='\0';
-    while ((opt=getopt_long(argc,argv,"o:b:t:j:i:f:s:p:P:F:CuU:S:Aqh",long_opts,&opti))!=-1) {
+    while ((opt=getopt_long(argc,argv,"o:b:t:j:i:f:s:p:P:F:CuU:S:AT:E:qh",long_opts,&opti))!=-1) {
         switch (opt) {
             case 'o':
                 strncpy(output_base, optarg, 255);
@@ -129,6 +134,12 @@ int main(int argc, char *argv[]) {
             case 'A':
                 apply_scale = 1;
                 break;
+            case 'T':
+                tstart = atof(optarg);
+                break;
+            case 'E':
+                tend = atof(optarg);
+                break;
             case 'q':
                 quiet=1;
                 break;
@@ -151,20 +162,20 @@ int main(int argc, char *argv[]) {
 
     /* Open first file */
     struct psrfits pf;
-    sprintf(pf.basefilename, argv[optind]);
-    pf.filenum = fnum_start;
+    psrfits_set_files(&pf, argc - optind, argv + optind);
+    // Use the dynamic filename allocation
+    if (pf.numfiles==0) pf.filenum = fnum_start;
     pf.tot_rows = pf.N = pf.T = pf.status = 0;
     pf.hdr.chan_dm = 0.0; // What if folding data that has been partially de-dispersed?
-    pf.filename[0]='\0';
     int rv = psrfits_open(&pf);
     if (rv) { fits_report_error(stderr, rv); exit(1); }
 
-    /* Check any constraints */
-    if (pf.hdr.nbits!=8) { 
-        fprintf(stderr, "Only implemented for 8-bit data (read nbits=%d).\n",
-                pf.hdr.nbits);
-        exit(1);
-    }
+//    /* Check any constraints */
+//    if (pf.hdr.nbits!=8) { 
+//        fprintf(stderr, "Only implemented for 8-bit data (read nbits=%d).\n",
+//                pf.hdr.nbits);
+//        exit(1);
+//    }
 
     /* Check for calfreq */
     if (cal) {
@@ -282,6 +293,7 @@ int main(int argc, char *argv[]) {
                 exit(1);
             }
             fclose(pcfile);
+            printf("Read %d polycos\n", npc);
         }
     } else {
         // Const fold period mode, generate a fake polyco?
@@ -317,7 +329,15 @@ int main(int argc, char *argv[]) {
     fargs = (struct fold_args *)malloc(sizeof(struct fold_args) * nthread);
     for (i=0; i<nthread; i++) { 
         thread_id[i] = 0; 
-        fargs[i].data = (char *)malloc(sizeof(char)*pf.sub.bytes_per_subint);
+        // If PSRFITS file's raw samples are less than 8-bits each 
+        // pf.sub.bytes_per_subint will be too small to hold 8-bit samples
+        // So make data array large enough to hold 8-bit samples
+        if (pf.hdr.nbits<8) 
+            fargs[i].data = (char *)malloc(
+                    sizeof(char)*pf.sub.bytes_per_subint*(8/pf.hdr.nbits));
+        else
+            fargs[i].data = (char *)malloc(
+                    sizeof(char)*pf.sub.bytes_per_subint);
         fargs[i].fb = (struct foldbuf *)malloc(sizeof(struct foldbuf));
         fargs[i].fb->nbin = pf_out.hdr.nbin;
         fargs[i].fb->nchan = pf.hdr.nchan;
@@ -346,6 +366,12 @@ int main(int argc, char *argv[]) {
 
         /* Read data block */
         pf.sub.data = (unsigned char *)fargs[cur_thread].data;
+        if (pf.hdr.nbits >= 8) {
+            // 8-or-more-bit raw data. No need for conversion
+            pf.sub.rawdata = pf.sub.data;
+        } else {
+            pf.sub.rawdata = (char *)malloc(sizeof(char) * pf.sub.bytes_per_subint);
+        }
         rv = psrfits_read_subint(&pf);
         if (rv) { 
             if (rv==FILE_NOT_OPENED) rv=0; // Don't complain on file not found
@@ -360,6 +386,10 @@ int main(int argc, char *argv[]) {
         imjd = (int)pf.hdr.MJD_epoch;
         fmjd = (double)(pf.hdr.MJD_epoch - (long double)imjd);
         fmjd += (pf.sub.offs-0.5*pf.sub.tsubint)/86400.0;
+
+        /* Check for start/end times */
+        if (tstart>0.0 && pf.sub.offs<tstart) { continue; }
+        if (tend>0.0 && pf.sub.offs>tend) { run=0; break; }
 
         /* First time stuff */
         if (first) {
@@ -384,8 +414,8 @@ int main(int argc, char *argv[]) {
 
         /* Select polyco set */
         if (use_polycos) {
-            ipc = select_pc(pc, npc, source, imjd, fmjd);
-            //ipc = select_pc(pc, npc, NULL, imjd, fmjd);
+            //ipc = select_pc(pc, npc, source, imjd, fmjd);
+            ipc = select_pc(pc, npc, NULL, imjd, fmjd);
             if (ipc<0) { 
                 fprintf(stderr, "No matching polycos (src=%s, imjd=%d, fmjd=%f)\n",
                         source, imjd, fmjd);
@@ -408,8 +438,19 @@ int main(int argc, char *argv[]) {
         fargs[cur_thread].pc = &pc[ipc];
         fargs[cur_thread].imjd = imjd;
         fargs[cur_thread].fmjd = fmjd;
-        rv = pthread_create(&thread_id[cur_thread], NULL, 
-                fold_8bit_power_thread, &fargs[cur_thread]);
+        if (pf.hdr.nbits<=8)
+            rv = pthread_create(&thread_id[cur_thread], NULL, 
+                    fold_8bit_power_thread, &fargs[cur_thread]);
+        else if (pf.hdr.nbits==16)
+            rv = pthread_create(&thread_id[cur_thread], NULL, 
+                    fold_16bit_power_thread, &fargs[cur_thread]);
+        else if (pf.hdr.nbits==32)
+            rv = pthread_create(&thread_id[cur_thread], NULL, 
+                    fold_float_power_thread, &fargs[cur_thread]);
+        else {
+            fprintf(stderr, "Unsupported nbits=%d\n", pf.hdr.nbits);
+            exit(1);
+        }
         if (rv) {
             fprintf(stderr, "Thread creation error.\n");
             exit(1);
@@ -491,21 +532,23 @@ int main(int argc, char *argv[]) {
                 for (i=0; i<npc; i++) pc_written[i]=0;
             }
 
-            /* Write the current polyco if needed */
-            if (pc_written[ipc]==0) {
-                psrfits_write_polycos(&pf_out, &pc[ipc], 1);
-                if (pf_out.status) {
-                    fprintf(stderr, "Error writing polycos.\n");
-                    fits_report_error(stderr, pf_out.status);
-                    exit(1);
+            // Write the current and previous polycos, if needed
+            for (i=0; i<=ipc; i++) {
+                if (pc_written[i]==0) {
+                    psrfits_write_polycos(&pf_out, &pc[i], 1);
+                    if (pf_out.status) {
+                        fprintf(stderr, "Error writing polycos.\n");
+                        fits_report_error(stderr, pf_out.status);
+                        exit(1);
+                    }
+                    pc_written[i] = 1;
                 }
-                pc_written[ipc] = 1;
             }
 
             /* Clear counters, avgs */
             clear_foldbuf(&fb);
             pf_out.sub.offs = 0.0;
-            offs0 = pf.sub.offs - 0.5*pf.sub.tsubint;
+            offs0 = pf.sub.offs + 0.5*pf.sub.tsubint;
             subcount=0;
 
             /* Set next output time */
@@ -519,6 +562,12 @@ int main(int argc, char *argv[]) {
                     100.0 * (float)(pf.rownum-1)/(float)pf.rows_per_file);
             fflush(stdout);
         }
+
+        /* Free the allocated memory if needs be */
+        if (pf.hdr.nbits != 8) {
+            free(pf.sub.rawdata);
+        }
+
     }
 
     /* Join any running threads */
@@ -534,6 +583,6 @@ int main(int argc, char *argv[]) {
     psrfits_close(&pf_out);
     psrfits_close(&pf);
 
-    if (rv) { fits_report_error(stderr, rv); }
+    if (rv>100) { fits_report_error(stderr, rv); }
     exit(0);
 }
