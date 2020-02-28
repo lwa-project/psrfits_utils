@@ -86,10 +86,17 @@ int main(int argc, char *argv[])
    cmd = parseCmdline(argc, argv);
    pfupper.tot_rows = pfupper.N = pfupper.T = pfupper.status = 0;       //Initialize upper band
    pflower.tot_rows = pflower.N = pflower.T = pflower.status = 0;       //Initialize lower band
-   pfupper.filenum = pflower.filenum = 1;
+   pfupper.filenum = pflower.filenum = 0;
    pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0;       //Initialize output
-   sprintf(pfupper.filename, cmd->argv[0]);     //Copy filename specified on command line to
-   sprintf(pflower.filename, cmd->argv[1]);     //upper and lower bands, will correct filenames shortly
+   pfupper.filenames = (char **)malloc(sizeof(char *));
+   pflower.filenames = (char **)malloc(sizeof(char *));
+   char tmpfilename[80],tmpfilename2[80];
+   sprintf(tmpfilename, cmd->argv[0]);     //Copy filename specified on command line to
+   pfupper.filenames[0]=tmpfilename;
+   pfupper.numfiles=1;
+   sprintf(tmpfilename2, cmd->argv[1]);     //upper and lower bands, will correct filenames shortly
+   pflower.filenames[0]=tmpfilename2;
+   pflower.numfiles=1;
 //   if ((pc2 = strstr(pfupper.filename, "s1")) != NULL)  //Upper contains s1, change to s0
 //      strncpy(pc2, "s0", 2);
 //   else if ((pc2 = strstr(pflower.filename, "s0")) != NULL)     //Lower contains s0, change to s1
@@ -190,9 +197,18 @@ int main(int argc, char *argv[])
       if(lowerchantoremove<0)
         lowerchantoremove=lowerchantoremove*-1;
       overlap=(int)(lowerchantoremove);
+      //printf("%f %f\n",lowerchantoremove,(float)(overlap));
       float remainder=lowerchantoremove-(float)(overlap);
       if(remainder>0.5)
         overlap++;
+      //printf("overlap=%d\n",overlap);
+      int lowchanskip=overlap/2;
+      int highchanskip=overlap/2;
+      if(overlap%2==1)
+      {
+        highchanskip++;
+      }
+      //printf("lowchanskip=%d,highchanskip=%d\n",lowchanskip,highchanskip);
       if(abs(lowerchantoremove-(float)(overlap))>0.001)
       {
         printf("Error: Frequency channels do not line up well, %f ...Exiting.\n",lowerchantoremove);
@@ -203,11 +219,11 @@ int main(int argc, char *argv[])
          outnchan = nchan+nchan-overlap;
          pfo.hdr.nchan = outnchan;
          printf("outnchan=%d\n",outnchan);
-         if(overlap)
-           exit(1);
-         pfo.hdr.BW = (double) pflower.hdr.BW*2.0;      //New bandwidth
+         //if(overlap)
+         //  exit(1);
+         pfo.hdr.BW = (double) df*outnchan;      //New bandwidth
          pfo.hdr.fctr =         //New center frequency
-             pflower.sub.dat_freqs[nchan-1]+pflower.hdr.BW/nchan;
+             pflower.sub.dat_freqs[nchan-1-lowchanskip]+df;
          pfo.sub.bytes_per_subint = pfo.hdr.nchan * nsblk * nbits / 8 * npol;
          pfo.sub.dat_freqs = (double *) malloc(sizeof(double) * outnchan);
          pfo.sub.dat_weights = (float *) malloc(sizeof(float) * outnchan);
@@ -250,26 +266,32 @@ int main(int argc, char *argv[])
          unsigned char *urawdata = pfupper.sub.rawdata;
          unsigned char *ldata = pflower.sub.data;
          unsigned char *lrawdata = pflower.sub.rawdata;
-         memcpy(dat_freqs,ldat_freqs, sizeof(double) *nchan);
-         memcpy(dat_freqs+nchan,udat_freqs, sizeof(double) *nchan);
-         memcpy(dat_weights,ldat_weights, sizeof(float) *nchan);
-         memcpy(dat_weights+nchan,udat_weights, sizeof(float) *nchan);
-         memcpy(dat_offsets,ldat_offsets, sizeof(float) *nchan);
-         memcpy(dat_offsets+nchan,udat_offsets, sizeof(float) *nchan);
-         memcpy(dat_scales,ldat_scales, sizeof(float)*nchan);
-         memcpy(dat_scales+nchan,udat_scales, sizeof(float)*nchan);
+         memcpy(dat_freqs,ldat_freqs, sizeof(double)*(nchan-lowchanskip));
+         //memcpy(dat_freqs,ldat_freqs, sizeof(double) *nchan);
+         //printf("nchan=%d,lowchanskip=%d,highchanskip=%d\n",nchan,lowchanskip,highchanskip);
+         memcpy(dat_freqs+(nchan-lowchanskip),udat_freqs+highchanskip, sizeof(double)*(nchan-highchanskip));
+         memcpy(dat_weights,ldat_weights, sizeof(float) *(nchan-lowchanskip));
+         //memcpy(dat_weights,ldat_weights, sizeof(float) *nchan);
+         memcpy(dat_weights+(nchan-lowchanskip),udat_weights+highchanskip, sizeof(float) *(nchan-highchanskip));
+         memcpy(dat_offsets,ldat_offsets, sizeof(float) *(nchan-lowchanskip));
+         //memcpy(dat_offsets,ldat_offsets, sizeof(float) *nchan);
+         memcpy(dat_offsets+(nchan-lowchanskip),udat_offsets+highchanskip, sizeof(float) *(nchan-highchanskip));
+         memcpy(dat_scales,ldat_scales, sizeof(float)*(nchan-lowchanskip));
+         //memcpy(dat_scales,ldat_scales, sizeof(float)*nchan);
+         memcpy(dat_scales+(nchan-lowchanskip),udat_scales+highchanskip, sizeof(float)*(nchan-highchanskip));
          int ii;
          for (ii = 0; ii < nsblk; ++ii)
          {
            if(nbits==4)
            {
-             memcpy(data + ii * outnchan, ldata + ii * nchan, nchan*npol);
-             memcpy(data + ii * outnchan + nchan, udata + ii * nchan, nchan*npol);
+             memcpy(data + ii * outnchan, ldata + ii * (nchan-lowchanskip), (nchan-lowchanskip)*npol);
+             memcpy(data + ii * outnchan + (nchan-lowchanskip), udata + ii * (nchan+highchanskip), (nchan-highchanskip)*npol);
            }
            else if(nbits==8)
            {
-             memcpy(rawdata + ii * outnchan, lrawdata + ii * nchan, nchan*npol);
-             memcpy(rawdata + ii * outnchan + nchan, urawdata + ii * nchan, nchan*npol);
+             memcpy(rawdata + ii * outnchan, lrawdata + ii * nchan, (nchan-lowchanskip)*npol);
+             //memcpy(rawdata + ii * outnchan, lrawdata + ii * nchan, nchan*npol);
+             memcpy(rawdata + ii * outnchan + (nchan-lowchanskip), urawdata + ii * nchan + highchanskip, (nchan-highchanskip)*npol);
            }
          }
          psrfits_write_subint(&pfo);
