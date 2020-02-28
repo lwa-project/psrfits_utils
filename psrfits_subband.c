@@ -43,7 +43,6 @@ struct subband_info {
     int *idelays;
     int *numnonzero;
     double *sub_freqs;
-    float *weights;
     float *userwgts;
     float *weights;
     float *offsets;

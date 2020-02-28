@@ -21,7 +21,7 @@ void convert2_float_array(float *result, PyObject *input, int size) {
       free(result);       
       exit(EXIT_FAILURE);
     }
-    free(o);
+    Py_XDECREF(o);
   }
 }
 
@@ -45,7 +45,7 @@ void convert2_double_array(double *result, PyObject *input, int size) {
       free(result);
       exit(EXIT_FAILURE);
     }
-    free(o);
+    Py_XDECREF(o);
   }
 }
 
@@ -96,7 +96,7 @@ unsigned char *convert_uchar_array(unsigned char *result,PyObject *input, int si
       free(result);       
       return NULL;
     }
-    free(o);
+    Py_XDECREF(o);
   }
   return result;
 }
