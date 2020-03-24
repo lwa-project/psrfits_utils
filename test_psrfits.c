@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     pf.sub.FITS_typecode = TBYTE;  // 11 = byte
 
     // Create and initialize the subint arrays
-    pf.sub.dat_freqs = (float *)malloc(sizeof(float) * pf.hdr.nchan);
+    pf.sub.dat_freqs = (double *)malloc(sizeof(double) * pf.hdr.nchan);
     pf.sub.dat_weights = (float *)malloc(sizeof(float) * pf.hdr.nchan);
     dtmp = pf.hdr.fctr - 0.5 * pf.hdr.BW + 0.5 * pf.hdr.df;
     for (ii = 0 ; ii < pf.hdr.nchan ; ii++) {

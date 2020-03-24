@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
             "/data2/demorest/parspec/parspec_test_B0329+54_0009");
     pf.filenum=1;
     int rv = psrfits_open(&pf);
-    pf.sub.dat_freqs = (float *)malloc(sizeof(float) * pf.hdr.nchan);
+    pf.sub.dat_freqs = (double *)malloc(sizeof(double) * pf.hdr.nchan);
     pf.sub.dat_weights = (float *)malloc(sizeof(float) * pf.hdr.nchan);
     pf.sub.dat_offsets = (float *)malloc(sizeof(float) 
             * pf.hdr.nchan * pf.hdr.npol);
