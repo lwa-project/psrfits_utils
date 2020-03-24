@@ -321,7 +321,7 @@ int psrfits_write_subint(struct psrfits *pf) {
         out_nbytes = sub->bytes_per_subint / (hdr->ds_freq_fact * hdr->ds_time_fact);
         if (hdr->nbits < hdr->orig_nbits) {
             out_nbytes /= (hdr->orig_nbits / hdr->nbits);
-        } else {
+        } else if (hdr->orig_nbits > 0) {
             out_nbytes *= (hdr->nbits / hdr->orig_nbits);
         }
         if (hdr->onlyI)
