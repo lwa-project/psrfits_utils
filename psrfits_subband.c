@@ -131,7 +131,7 @@ void new_scales_and_offsets(struct psrfits *pfo, int numunsigned, Cmdline *cmd) 
         target_avg = ((1 << (pfo->hdr.nbits - 1)) - 0.5) \
             - 1.0 * target_std;
     }
-
+    
     if (cmd->bandpassfileP) {
         int N;
         printf("Overriding input channel statistics with those in '%s'\n",
@@ -429,7 +429,7 @@ void init_subbanding(struct psrfits *pfi, struct psrfits *pfo,
     pfi->sub.dat_scales  = (float *)malloc(sizeof(float)
                                            * pfi->hdr.nchan * pfi->hdr.npol);
     pfi->sub.rawdata = (unsigned char *)malloc(pfi->sub.bytes_per_subint);
-    pfi->sub.fdata = (unsigned char *)malloc(pfi->sub.bytes_per_subint*sizeof(float));
+    pfi->sub.fdata = (float *)malloc(pfi->sub.bytes_per_subint*sizeof(float));
     if (pfi->hdr.nbits < 8) {
         pfi->sub.data = (unsigned char *)malloc(pfi->sub.bytes_per_subint *
                                                 (8 / pfi->hdr.nbits));
@@ -728,7 +728,7 @@ int main(int argc, char *argv[]) {
             pf_unpack_2bit_to_8bit(&pfi, si.numunsigned);
         else if (pfi.hdr.nbits == 4)
             pf_unpack_4bit_to_8bit(&pfi, si.numunsigned);
-
+		
         if ((pfo.hdr.ds_time_fact == 1) &&
             (pfo.hdr.ds_freq_fact == 1)) {
             // No subbanding is needed, so just copy the float buffer

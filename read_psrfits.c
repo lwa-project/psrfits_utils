@@ -506,8 +506,8 @@ int psrfits_read_part_DATA(struct psrfits *pf, int N, int numunsigned,
     int nivals = hdr->nchan * hdr->npol;
     long long numdata = (long long) nivals * (long long) N;
     long long bytes_to_read = (hdr->nbits * numdata) / 8L;
-    float *offsets = (double *)malloc(sizeof(float) * nivals);
-    float *scales = (double *)malloc(sizeof(float) * nivals);
+    float *offsets = (float *)malloc(sizeof(float) * nivals);
+    float *scales = (float *)malloc(sizeof(float) * nivals);
     unsigned char *buffer = (unsigned char *)malloc(numdata);
     unsigned char *rawbuffer = buffer;
     if (hdr->nbits==4 || hdr->nbits==2) {
@@ -516,10 +516,10 @@ int psrfits_read_part_DATA(struct psrfits *pf, int N, int numunsigned,
 
     // Now read the data
     fits_get_colnum(pf->fptr, 0, "DAT_OFFS", &colnum, status);
-    fits_read_col(pf->fptr, TDOUBLE, colnum, pf->rownum, 1, nivals,
+    fits_read_col(pf->fptr, TFLOAT, colnum, pf->rownum, 1, nivals,
                   NULL, offsets, NULL, status);
     fits_get_colnum(pf->fptr, 0, "DAT_SCL", &colnum, status);
-    fits_read_col(pf->fptr, TDOUBLE, colnum, pf->rownum, 1, nivals,
+    fits_read_col(pf->fptr, TFLOAT, colnum, pf->rownum, 1, nivals,
                   NULL, scales, NULL, status);
     fits_get_colnum(pf->fptr, 0, "DATA", &colnum, status);
     fits_read_col(pf->fptr, TBYTE, colnum, pf->rownum, 1, bytes_to_read,
