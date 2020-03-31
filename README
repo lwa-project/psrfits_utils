@@ -9,3 +9,7 @@ To compile:
   ./configure [options]
   make && make install
 
+Changes relative to upstream:
+ * Added combine_lwa and combine_lwa2
+ * Added psrfits_drifttool
+ * Changed subint.dat_freqs from float to double
