@@ -262,7 +262,7 @@ int psrfits_open(struct psrfits *pf) {
 
 void apply_scales_and_offsets(int numchan, int numpol, int numspect,
                               int numunsigned, 
-                              double *scales, double *offsets,
+                              float *scales, float *offsets,
                               unsigned char *inbuf, float *outbuf)
 {
     int ii, jj, poln, N;
@@ -271,8 +271,8 @@ void apply_scales_and_offsets(int numchan, int numpol, int numspect,
     N = numchan * numpol;
     for (ii = 0 ; ii < numspect ; ii++) {
         for (poln = 0 ; poln < numpol ; poln++) {
-            double *sptr = scales + poln * numchan;
-            double *optr = offsets + poln * numchan;
+            float *sptr = scales + poln * numchan;
+            float *optr = offsets + poln * numchan;
             if (poln < numunsigned) {
                 unsigned char *inptr = inbuf + ii * N + poln * numchan;
                 for (jj = 0 ; jj < numchan ; jj++, sptr++, optr++, inptr++, outptr++)
