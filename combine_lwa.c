@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
 #include <fitsio.h>
 #include <libgen.h>
 #include "psrfits.h"
