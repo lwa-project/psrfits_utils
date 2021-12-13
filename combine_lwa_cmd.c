@@ -727,13 +727,13 @@ usage(void)
 {
   fprintf(stderr,"%s","   [-o outputbasename] [--] infile ...\n");
   fprintf(stderr,"%s","      \n");
-  fprintf(stderr,"%s","      Combine two frequency bands of Mock spectrometer data.\n");
+  fprintf(stderr,"%s","      Combine two frequency bands of LWA data.\n");
   fprintf(stderr,"%s","      \n");
   fprintf(stderr,"%s","        -o: Basename for the output files\n");
   fprintf(stderr,"%s","            1 char* value\n");
   fprintf(stderr,"%s","    infile: Input file name(s) of the PSRFITs datafiles\n");
   fprintf(stderr,"%s","            1...2000 values\n");
-  fprintf(stderr,"%s","  version: 18Nov13\n");
+  fprintf(stderr,"%s","  version: 19Nov13\n");
   fprintf(stderr,"%s","  ");
   exit(EXIT_FAILURE);
 }
@@ -785,4 +785,3 @@ parseCmdline(int argc, char **argv)
   }
   /*@-compmempass*/  return &cmd;
 }
-
