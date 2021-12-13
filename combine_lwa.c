@@ -9,7 +9,7 @@
 #include <fitsio.h>
 #include <libgen.h>
 #include "psrfits.h"
-#include "combine_mocks_cmd.h"
+#include "combine_lwa_cmd.h"
 
 static void print_percent_complete(int current, int number, int reset)
 {
