@@ -10,6 +10,6 @@ To compile:
   make && make install
 
 Changes relative to upstream:
- * Added combine_lwa and combine_lwa2
+ * Added combine_lwa, combine_lwa2, and average_lwa
  * Added psrfits_drifttool
  * Changed subint.dat_freqs from float to double
