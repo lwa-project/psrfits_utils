@@ -24,7 +24,7 @@ libpsrfits_utils_la_SOURCES = \
 LDADD = libpsrfits_utils.la
 AM_CPPFLAGS = -DPSRFITS_TEMPLATE_DIR='"$(datadir)"'
 
-bin_PROGRAMS = fold_psrfits psrfits_singlepulse psrfits_subband combine_mocks combine_lwa combine_lwa2 psrfits_drifttool
+bin_PROGRAMS = fold_psrfits psrfits_singlepulse psrfits_subband combine_mocks combine_lwa combine_lwa2 average_lwa psrfits_drifttool
 
 fold_psrfits_CFLAGS = @PTHREAD_CFLAGS@ $(AM_CFLAGS)
 fold_psrfits_LDFLAGS = @PTHREAD_CFLAGS@ $(AM_LDFLAGS)
@@ -41,6 +41,9 @@ combine_lwa_SOURCES = combine_lwa.c \
 
 combine_lwa2_SOURCES = combine_lwa2.c \
               combine_lwa_cmd.h combine_lwa_cmd.c
+
+average_lwa_SOURCES = average_lwa.c \
+              average_lwa_cmd.h average_lwa_cmd.c
 
 psrfits_drifttool_SOURCES = psrfits_drifttool.c \
 			    psrfits_drifttool_cmd.h psrfits_drifttool_cmd.c

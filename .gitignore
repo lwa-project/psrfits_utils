@@ -36,6 +36,7 @@ psrfits_singlepulse
 psrfits_subband
 mpimerge_psrfits
 find_dropped_blocks
+average_lwa
 combine_lwa
 combine_lwa2
 combine_mocks
