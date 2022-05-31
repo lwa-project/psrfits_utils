@@ -1,5 +1,5 @@
-//This code combines the two frequency bands from the LWA
-//spectrometers at Arecibo. K. Stovall  Oct 2010
+//This code combines the two frequency bands from the LWA.
+//K. Stovall  Oct 2010
 
 #include <stdio.h>
 #include <stdlib.h>
