@@ -1,6 +1,6 @@
 Name combine_lwa
 
-Usage "\nCombine two frequency bands of Mock spectrometer data.\n"
+Usage "\nCombine two frequency bands of LWA data.\n"
 
 Version [exec date +%d%b%y]
 
@@ -12,4 +12,4 @@ String -o  outputbasename {Basename for the output files}
 
 # Rest of command line:
 Rest infile {Input file name(s) of the PSRFITs datafiles} \
-        -c 1 2000
+        -c 1 2000, sorted by decreasing frequency
