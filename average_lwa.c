@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
    pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0;       //Initialize output
    pfs1.filenames = (char **)malloc(sizeof(char *));
    pfs2.filenames = (char **)malloc(sizeof(char *));
-   char tmpfilename[80],tmpfilename2[80];
+   char tmpfilename[200],tmpfilename2[200];
    sprintf(tmpfilename, cmd->argv[0]);     //Copy filename specified on command line to
    pfs1.filenames[0]=tmpfilename;
    pfs1.numfiles=1;

@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
    pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0;       //Initialize output
    pfupper.filenames = (char **)malloc(sizeof(char *));
    pflower.filenames = (char **)malloc(sizeof(char *));
-   char tmpfilename[80],tmpfilename2[80];
+   char tmpfilename[200],tmpfilename2[200];
    sprintf(tmpfilename, cmd->argv[0]);     //Copy filename specified on command line to
    pfupper.filenames[0]=tmpfilename;
    pfupper.numfiles=1;
