@@ -36,13 +36,18 @@ void weighted_sum(unsigned char *x1, float* s1, float* z1, float* w1,
                   unsigned char *x2, float* s2, float* z2, float* w2,
                   unsigned char *x,  float* s,  float* z,  float* w,
                   int nwin, int nchan, int npol, unsigned char clip) {
-  long i, j, k;
-  float va, vb, vf;
-  float sa, sb, sf;
-  float za, zb, zf;
-  float wa, wb, wf;
+  long i, j;
+  float va, vb;
+  float sa, sb;
+  float za, zb;
+  float wa, wb;
+  
+  float* temp;
+  temp = (float*) malloc(nwin * sizeof(float));
+  memset(temp, 0, nwin*sizeof(float));
 
   for(i=0; i<nchan*npol; i++) {
+    // Load in the scale factors, zero offsets, and weights
     sa = *(s1 + i);
     sb = *(s2 + i);
     za = *(z1 + i);
@@ -50,21 +55,49 @@ void weighted_sum(unsigned char *x1, float* s1, float* z1, float* w1,
     if(i % npol == 0) {
       wa = *(w1 + i/npol);
       wb = *(w2 + i/npol);
-      *(w + i/npol) = wf = (wa + wb) / 2.0;
+      *(w + i/npol) = (wa + wb) / 2.0;
     }
     
-    *(s + i) = sf = (sa*wa + sb*wb) / (wa + wb);
-    *(z + i) = zf = (za*wa + zb*wb) / (wa + wb);
-    
+    // Compute the weighted average values and save the min/max value encountered
+    float vmin, vmax;
+    vmin =  1e20;
+    vmax = -1e20;
     for(j=0; j<nwin; j++) {
+      // Apply the scale and zero offsets
       va = *(x1 + j*nchan*npol + i) * sa + za;
       vb = *(x2 + j*nchan*npol + i) * sb + zb;
       
-      vf = (va*wa + vb*wb) / (wa + wb);
-      vf -= zf;
-      vf /= sf;
-      vf = round(vf);
-      *(x + j*nchan*npol + i) = ((unsigned char) vf) & clip;
+      // Average
+      *(temp + j) = (va*wa + vb*wb) / (wa + wb);
+      
+      // Min/max comparisions
+      if( *(temp + j) < vmin ) {
+        vmin = *(temp + j);
+      } else if( *(temp + j) > vmax ) {
+        vmax = *(temp + j);
+      }
+      
+      // Clean up NaNs - we need to do this after the min/max step
+      if( *(temp + j) != *(temp + j) ) {
+        *(temp + j) = 0.0;
+      }
+    }
+    
+    // Compute the scale factor and zero offsets for the averaged data
+    if( vmin > vmax ) {
+      // But first, deal with the case of no valid data populating vmin and vmax
+      vmin = 0.0;
+      vmax = 1.0;
+    }
+    *(s + i) = (vmax - vmin) / clip;
+    *(z + i) = vmin;
+    
+    // Save the avearged data
+    for(j=0; j<nwin; j++) {
+      *(temp + j) -= *(z + i);
+      *(temp + j) /= *(s + i);
+      *(temp + j) = round(*(temp + j));
+      *(x + j*nchan*npol + i) = ((unsigned char) *(temp + j)) & clip;
     }
   }
 }
