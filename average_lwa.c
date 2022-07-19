@@ -100,6 +100,8 @@ void weighted_sum(unsigned char *x1, float* s1, float* z1, float* w1,
       *(x + j*nchan*npol + i) = ((unsigned char) *(temp + j)) & clip;
     }
   }
+  
+  free(temp);
 }
 
 int main(int argc, char *argv[])
