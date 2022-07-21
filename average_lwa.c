@@ -55,7 +55,7 @@ void weighted_sum(unsigned char *x1, float* s1, float* z1, float* w1,
     if(i % npol == 0) {
       wa = *(w1 + i/npol);
       wb = *(w2 + i/npol);
-      *(w + i/npol) = (wa + wb) / 2.0;
+      *(w + i/npol) = ((wa + wb) > 0) ? 1 : 0;
     }
     
     // Compute the weighted average values and save the min/max value encountered
