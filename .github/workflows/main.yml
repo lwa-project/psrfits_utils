@@ -1,0 +1,59 @@
+name: Build
+on:
+  push:
+  pull_request:
+jobs:
+  pre_build:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v3.4.1
+        with:
+          concurrent_skipping: 'same_content'
+          paths_ignore: '["README.md"]'
+          skip_after_successful_duplicate: 'true'
+          do_not_skip: '["pull_request", "workflow_dispatch", "schedule"]'
+  build:
+    needs: pre_build
+    if: ${{ needs.pre_build.outputs.should_skip != 'true' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.8', '3.10', '3.12']
+      fail-fast: false
+    steps:
+        - name: "Software Install - Ubuntu"
+          if: ${{ matrix.os == 'ubuntu-latest' }}
+          run: |
+            sudo apt-get install -y \
+              build-essential \
+              ca-certificates \
+              curl \
+              git \
+              gzip \
+              libcfitsio-dev \
+              pkg-config \
+              tcsh \
+              swig
+        - name: "Software Install - MacOS"
+          if: ${{ matrix.os == 'macos-latest' }}
+          run: |
+            brew install \
+              autoconf \
+              automake \
+              cfitsio \
+              pkg-config \
+              swig
+        - uses: actions/setup-python@v2
+          with:
+            python-version: ${{ matrix.python-version }}
+        - uses: actions/checkout@v2
+          run: |
+            ./prepare
+            ./configure
+            make all
+            cp ./.libs/*[sd][oy]* ./
+            sudo make install
