@@ -51,6 +51,7 @@ jobs:
           with:
             python-version: ${{ matrix.python-version }}
         - uses: actions/checkout@v2
+        - name: Build and Install
           run: |
             ./prepare
             ./configure
