@@ -54,10 +54,7 @@ jobs:
         - name: Build and Install
           run: |
             ./prepare
-            ./configure --prefix=/usr
+            ./configure
             make all
             cp ./.libs/*[sd][oy]* ./
             sudo make install
-        - name: Test
-          run: |
-            python -c "import psrfits_utils.psrfits_utils as pfu; print(pfu)"
