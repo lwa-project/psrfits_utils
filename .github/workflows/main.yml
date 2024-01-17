@@ -58,6 +58,6 @@ jobs:
             make all
             cp ./.libs/*[sd][oy]* ./
             sudo make install
-        - name: Test:
+        - name: Test
           run: |
             python -c "import psrfits_utils.psrfits_utils as pfu; print(pfu)"
