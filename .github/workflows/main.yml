@@ -54,7 +54,7 @@ jobs:
         - name: Build and Install
           run: |
             ./prepare
-            ./configure
+            ./configure --prefix=/usr
             make all
             cp ./.libs/*[sd][oy]* ./
             sudo make install
