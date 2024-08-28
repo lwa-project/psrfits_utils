@@ -45,6 +45,7 @@ jobs:
               autoconf \
               automake \
               cfitsio \
+              libtool \
               pkg-config \
               swig
         - uses: actions/setup-python@v2
