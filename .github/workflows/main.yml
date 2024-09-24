@@ -55,7 +55,7 @@ jobs:
         - name: Build and Install
           run: |
             ./prepare
-            ./configure
+            CFLAGS=`pkg-config --cflags cfitsio` LDFLAGS=`pkg-config --libs cfitsio` ./configure
             make all
             cp ./.libs/*[sd][oy]* ./
             sudo make install
